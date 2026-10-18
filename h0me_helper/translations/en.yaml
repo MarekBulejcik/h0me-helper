@@ -1,0 +1,16 @@
+configuration:
+  h0me_url:
+    name: H0me address
+    description: Where the helper connects. Leave as it is.
+  h0me_secret:
+    name: H0me secret
+    description: The long random secret. Exactly the same one you typed into Cloudflare.
+  ha_url:
+    name: Home Assistant address
+    description: How the helper reaches Home Assistant on the Pi. Leave as it is.
+  ha_token:
+    name: Home Assistant token
+    description: A long-lived token of the limited (non-admin) user "H0me helper". Not your own account's.
+  entities:
+    name: Devices
+    description: The only devices the helper passes to H0me (entity ids). H0me has its own list too; a device must be on both.

@@ -1,0 +1,8 @@
+{
+  "name": "h0me-helper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Connects Home Assistant to H0me with one connection out. No dependencies on purpose.",
+  "engines": { "node": ">=24" }
+}

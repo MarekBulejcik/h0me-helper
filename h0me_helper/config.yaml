@@ -1,0 +1,27 @@
+# H0me helper, a Home Assistant app (add-on). Home Assistant builds it on the Pi from the Dockerfile.
+name: H0me helper
+version: "0.1.0"
+slug: h0me_helper
+description: Connects Home Assistant to H0me with one connection out. Nothing comes in.
+url: https://github.com/MarekBulejcik/h0me-helper
+arch:
+  - aarch64
+  - amd64
+startup: application
+boot: auto
+# No ports, no host network, no Supervisor or Home Assistant admin access: it talks to Home
+# Assistant only with the limited user's token you give it below.
+options:
+  h0me_url: "wss://h0me.homestudio.workers.dev/api/house/public/helper"
+  h0me_secret: ""
+  ha_url: "ws://homeassistant:8123/api/websocket"
+  ha_token: ""
+  entities:
+    - light.main_lights
+schema:
+  h0me_url: str
+  h0me_secret: password
+  ha_url: str
+  ha_token: password
+  entities:
+    - str
