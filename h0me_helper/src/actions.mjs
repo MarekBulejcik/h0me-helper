@@ -9,7 +9,15 @@ const oneOf = (...values) => (v) => typeof v === "string" && values.includes(v);
 
 /** domain → action → the details it may carry, each with its check. */
 const SAFE = {
-  light: { turn_on: { brightness_pct: int(1, 100) }, turn_off: {} },
+  // brightness, and one of H0me's offered colours: a colour name, or a white's warmth in kelvin
+  light: {
+    turn_on: {
+      brightness_pct: int(1, 100),
+      color_name: oneOf("red", "orange", "yellow", "lime", "cyan", "blue", "purple", "deeppink"),
+      color_temp_kelvin: int(2000, 6500),
+    },
+    turn_off: {},
+  },
   switch: { turn_on: {}, turn_off: {} },
   humidifier: { turn_on: {}, turn_off: {} },
   scene: { turn_on: {} },

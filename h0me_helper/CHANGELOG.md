@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0
+- Light colours: one of H0me's offered colour names (red, orange, yellow, lime, cyan, blue,
+  purple, deeppink) or a white between 2000 and 6500 K. Nothing else.
+- The default device list adds the room's security mode (shown only, never switched).
+
 ## 0.3.0
 - More safe actions for the Home app: outlets and the humidifier (on, off), scenes (turn on),
   the AC (on, off, temperature 16–30 °C) and the room’s "Set Scene" script (only the scene names

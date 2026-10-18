@@ -1,6 +1,6 @@
 # H0me helper, a Home Assistant app (add-on). Home Assistant builds it on the Pi from the Dockerfile.
 name: H0me helper
-version: "0.3.0"
+version: "0.4.0"
 slug: h0me_helper
 description: Connects Home Assistant to H0me with one connection out. Nothing comes in.
 url: https://github.com/MarekBulejcik/h0me-helper
@@ -38,6 +38,7 @@ options:
     - binary_sensor.my_room_occupied
     - sensor.my_room_current_zone
     - device_tracker.poco_f8_ultra
+    - input_boolean.my_room_security_mode
 schema:
   h0me_url: str
   h0me_secret: password
