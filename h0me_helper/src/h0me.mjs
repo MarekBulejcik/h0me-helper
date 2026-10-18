@@ -7,7 +7,7 @@ const DEAD_AFTER = 60_000;
 export class H0me {
   /**
    * @param {{ h0meUrl: string, secret: string }} options
-   * @param {{ version: string, onConnected: () => void, onCall: (call: object) => void }} handlers
+   * @param {{ version: string, onConnected: () => void, onCall: (call: object) => void, onCamera: (msg: object) => void, onClosed: () => void }} handlers
    */
   constructor(options, handlers) {
     this.options = options;
@@ -47,7 +47,8 @@ export class H0me {
         lastPong = Date.now();
         return;
       }
-      // the only thing H0me can ask for: an action, which main.mjs checks against this helper's own list
+      // all H0me can ask for: an action (checked by main.mjs against this helper's own list), or a
+      // listed camera's picture while someone watches (camera.mjs)
       let msg;
       try {
         msg = JSON.parse(event.data);
@@ -55,10 +56,12 @@ export class H0me {
         return;
       }
       if (msg?.type === "call" && typeof msg.id === "string") this.handlers.onCall(msg);
+      else if (msg?.type === "camera") this.handlers.onCamera(msg);
     };
 
     ws.onclose = (event) => {
       clearInterval(timer);
+      this.handlers.onClosed();
       if (this.stopped) return;
       // stayed up a while: start the waiting over
       if (openedAt && Date.now() - openedAt > 60_000) this.retry = 2000;
@@ -77,6 +80,13 @@ export class H0me {
 
   send(message) {
     if (this.connected) this.ws.send(JSON.stringify(message));
+  }
+
+  /** A camera picture (binary). Returns false when not connected. */
+  sendBinary(data) {
+    if (!this.connected) return false;
+    this.ws.send(data);
+    return true;
   }
 
   stop() {

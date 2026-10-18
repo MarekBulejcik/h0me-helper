@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0
+- Camera live view: while someone has House's camera open, H0me asks every few seconds and the
+  helper sends snapshots (about three a second) of a camera in its "Devices" list. It stops 20 s
+  after H0me stops asking, or at once when the connection ends. Nothing is stored.
+
 ## 0.6.0
 - Security and the room's own settings: on / off for the room's switches (security mode, auto
   security, presence, manual override, phone sleep override), the control mode (Auto, Sleep), the

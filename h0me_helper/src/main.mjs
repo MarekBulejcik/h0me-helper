@@ -3,6 +3,7 @@
 // Home Assistant → (local) → this helper → (one connection out, encrypted) → H0me.
 import { readFileSync } from "node:fs";
 import { checkCall } from "./actions.mjs";
+import { Camera } from "./camera.mjs";
 import { H0me } from "./h0me.mjs";
 import { HomeAssistant } from "./home-assistant.mjs";
 import { log, warn } from "./log.mjs";
@@ -20,6 +21,12 @@ if (!options) {
 
   // the helper's own check: only listed devices ever leave the house, whatever Home Assistant sends
   const listed = (state) => options.entities.includes(state.entity_id);
+  // a camera's state carries a short-lived picture token: it never leaves the Pi
+  const clean = (state) => {
+    if (!state?.attributes || !("access_token" in state.attributes || "entity_picture" in state.attributes)) return state;
+    const { access_token, entity_picture, ...attributes } = state.attributes;
+    return { ...state, attributes };
+  };
 
   // at most 30 actions a minute, whatever H0me asks
   let recent = [];
@@ -44,14 +51,19 @@ if (!options) {
     answer(ok);
   };
 
+  // the camera's picture, only while someone watches in House (camera.mjs)
+  const camera = new Camera(options, (frame) => h0me.sendBinary(frame));
+
   const h0me = new H0me(options, {
     version,
-    onConnected: () => h0me.send({ type: "snapshot", states: ha.snapshot().filter(listed) }),
+    onConnected: () => h0me.send({ type: "snapshot", states: ha.snapshot().filter(listed).map(clean) }),
     onCall,
+    onCamera: (msg) => (msg.on === true ? camera.want(msg.entity_id) : camera.stop()),
+    onClosed: () => camera.stop(),
   });
   const ha = new HomeAssistant(options, {
-    onSnapshot: (states) => h0me.send({ type: "snapshot", states: states.filter(listed) }),
-    onState: (state) => listed(state) && h0me.send({ type: "state", state }),
+    onSnapshot: (states) => h0me.send({ type: "snapshot", states: states.filter(listed).map(clean) }),
+    onState: (state) => listed(state) && h0me.send({ type: "state", state: clean(state) }),
   });
 
   ha.start();
@@ -59,6 +71,7 @@ if (!options) {
 
   const stop = () => {
     log("Stopping");
+    camera.stop();
     ha.stop();
     h0me.stop();
     setTimeout(() => process.exit(0), 500);
