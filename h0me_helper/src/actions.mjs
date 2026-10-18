@@ -22,11 +22,24 @@ const SAFE = {
     turn_off: {},
   },
   switch: { turn_on: {}, turn_off: {} },
+  // the room's on / off settings (security mode, auto security, presence, manual override…)
+  input_boolean: { turn_on: {}, turn_off: {} },
+  // the room's control mode
+  input_select: { select_option: { option: oneOf("Auto", "Sleep") } },
+  // the empty-room delay, in minutes
+  input_number: { set_value: { value: int(1, 30) } },
+  // the camera's picture mode
+  select: { select_option: { option: oneOf("auto", "color", "blackwhite") } },
   humidifier: { turn_on: {}, turn_off: {} },
   scene: { turn_on: {} },
   climate: { turn_on: {}, turn_off: {}, set_temperature: { temperature: num(16, 30) } },
-  // scripts only get a scene name (the room's "Set Scene" script)
-  script: { turn_on: { scene_name: oneOf("Off", "Normal", "Mood", "Sleep", "Night Path") } },
+  // scripts only get a scene name (the room's "Set Scene" script) or a timer length (the AC / humidifier timers)
+  script: {
+    turn_on: {
+      scene_name: oneOf("Off", "Normal", "Mood", "Sleep", "Night Path"),
+      duration: oneOf("00:30:00", "01:00:00", "02:00:00", "04:00:00"),
+    },
+  },
 };
 
 /**

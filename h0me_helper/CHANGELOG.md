@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+- Security and the room's own settings: on / off for the room's switches (security mode, auto
+  security, presence, manual override, phone sleep override), the control mode (Auto, Sleep), the
+  empty-room delay (1–30 min), the camera's picture mode and the AC / humidifier timers (30 min,
+  1, 2 or 4 h). Each still only for devices in "Devices".
+- The default device list has all of them.
+
 ## 0.5.0
 - Any light colour: a hue (0–360) and saturation (0–100), both checked here too.
 
