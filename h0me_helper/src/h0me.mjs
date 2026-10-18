@@ -7,7 +7,7 @@ const DEAD_AFTER = 60_000;
 export class H0me {
   /**
    * @param {{ h0meUrl: string, secret: string }} options
-   * @param {{ version: string, onConnected: () => void }} handlers
+   * @param {{ version: string, onConnected: () => void, onCall: (call: object) => void }} handlers
    */
   constructor(options, handlers) {
     this.options = options;
@@ -47,9 +47,14 @@ export class H0me {
         lastPong = Date.now();
         return;
       }
-      // This version takes no commands from H0me at all (they come in a later version, checked
-      // against this helper's own device list). Anything else is ignored.
-      warn("Ignored a message from H0me (this version accepts no commands).");
+      // the only thing H0me can ask for: an action, which main.mjs checks against this helper's own list
+      let msg;
+      try {
+        msg = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+      if (msg?.type === "call" && typeof msg.id === "string") this.handlers.onCall(msg);
     };
 
     ws.onclose = (event) => {

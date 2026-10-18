@@ -1,6 +1,8 @@
-// H0me helper: passes the listed Home Assistant devices' states up to H0me.
+// H0me helper: passes the listed Home Assistant devices' states up to H0me, and does the actions
+// H0me asks for, but only those on its own list (actions.mjs).
 // Home Assistant → (local) → this helper → (one connection out, encrypted) → H0me.
 import { readFileSync } from "node:fs";
+import { checkCall } from "./actions.mjs";
 import { H0me } from "./h0me.mjs";
 import { HomeAssistant } from "./home-assistant.mjs";
 import { log, warn } from "./log.mjs";
@@ -19,9 +21,32 @@ if (!options) {
   // the helper's own check: only listed devices ever leave the house, whatever Home Assistant sends
   const listed = (state) => options.entities.includes(state.entity_id);
 
+  // at most 30 actions a minute, whatever H0me asks
+  let recent = [];
+  const onCall = async (call) => {
+    const answer = (ok) => h0me.send({ type: "result", id: call.id, ok });
+    const t = Date.now();
+    recent = recent.filter((at) => t - at < 60_000);
+    if (recent.length >= 30) {
+      warn("Refused an action from H0me: too many in a minute");
+      return answer(false);
+    }
+    recent.push(t);
+    const checked = checkCall(call, options.entities);
+    if (checked.refused) {
+      warn(`Refused an action from H0me: ${checked.refused}`);
+      return answer(false);
+    }
+    const ok = await ha.call(checked);
+    const details = Object.keys(checked.data).length ? ` ${JSON.stringify(checked.data)}` : "";
+    log(`${checked.domain}.${checked.service} ${checked.entityId}${details}: ${ok ? "done" : "failed"}`);
+    answer(ok);
+  };
+
   const h0me = new H0me(options, {
     version,
     onConnected: () => h0me.send({ type: "snapshot", states: ha.snapshot().filter(listed) }),
+    onCall,
   });
   const ha = new HomeAssistant(options, {
     onSnapshot: (states) => h0me.send({ type: "snapshot", states: states.filter(listed) }),

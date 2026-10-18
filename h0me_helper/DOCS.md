@@ -8,8 +8,9 @@ connect in: no tunnel, no open ports, no domain.
 - Watches only the devices in its **Devices** list and sends their states to H0me.
 - Keeps one encrypted connection to H0me open, showing the shared secret. H0me notices at once
   when it's gone ("Home offline since …").
-- This version **takes no commands** from H0me. Later versions will, but only for the devices and
-  actions on this helper's own list.
+- Does the actions H0me asks for, **only** if they're on this helper's own list: the device must
+  be in **Devices**, and the action one of the safe ones (lights: on, off, brightness; switches:
+  on, off). At most 30 a minute. Everything else is refused and shows in the Log tab.
 
 ## Settings (Configuration tab)
 | Setting | What to put in |

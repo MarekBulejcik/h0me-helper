@@ -4,7 +4,8 @@ A Home Assistant app (add-on) that connects a Home Assistant to H0me, a private 
 outgoing connection. Home Assistant itself is never exposed to the internet.
 
 - `h0me_helper/`: the app. Plain Node.js, **no dependencies** (nothing downloaded from npm).
-  - `src/main.mjs` starts both sides and passes states up;
+  - `src/main.mjs` starts both sides, passes states up and runs checked actions;
+  - `src/actions.mjs` is the helper's own list of safe actions (the second check, on the Pi);
   - `src/home-assistant.mjs` is the local side (Home Assistant's WebSocket API, limited user);
   - `src/h0me.mjs` is the outgoing connection to H0me (shared secret, pings, reconnects);
   - `src/options.mjs` reads and checks the settings.

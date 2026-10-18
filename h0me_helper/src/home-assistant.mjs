@@ -21,6 +21,9 @@ export class HomeAssistant {
     this.nextId = 1;
     this.retry = 2000;
     this.stopped = false;
+    this.signedIn = false;
+    /** call id → finish(ok), for actions waiting for Home Assistant's answer */
+    this.waiting = new Map();
   }
 
   /** The listed devices' current states, in H0me's format. */
@@ -47,6 +50,7 @@ export class HomeAssistant {
       if (msg.type === "auth_required") {
         ws.send(JSON.stringify({ type: "auth", access_token: this.options.haToken }));
       } else if (msg.type === "auth_ok") {
+        this.signedIn = true;
         log(`Signed in to Home Assistant ${msg.ha_version ?? ""}`.trim());
         this.retry = 2000;
         this.states.clear(); // the subscription's first message brings the whole picture again
@@ -61,6 +65,9 @@ export class HomeAssistant {
         warn("Home Assistant refused the token. Check the token in the Configuration tab (a long-lived token of the limited user).");
         this.retry = 60_000;
         ws.close();
+      } else if (msg.type === "result" && this.waiting.has(msg.id)) {
+        if (!msg.success) warn("Home Assistant refused an action:", msg.error?.message ?? "unknown reason");
+        this.waiting.get(msg.id)(msg.success === true);
       } else if (msg.type === "result" && msg.id === subscription && !msg.success) {
         warn("Home Assistant refused the device subscription:", msg.error?.message ?? "unknown reason");
       } else if (msg.type === "event" && msg.id === subscription) {
@@ -70,6 +77,8 @@ export class HomeAssistant {
 
     ws.onclose = () => {
       clearInterval(timer);
+      this.signedIn = false;
+      for (const finish of [...this.waiting.values()]) finish(false);
       if (this.stopped) return;
       log(`Lost Home Assistant; trying again in ${Math.round(this.retry / 1000)} s`);
       setTimeout(() => this.start(), this.retry);
@@ -105,6 +114,26 @@ export class HomeAssistant {
     // the first message (or the first after reconnecting) is the whole picture
     if (event.a && !event.c) this.handlers.onSnapshot(this.snapshot());
     else for (const id of changed) if (this.states.has(id)) this.handlers.onState(this.states.get(id));
+  }
+
+  /**
+   * Runs one action already checked by actions.mjs, e.g. light.turn_on on light.main_lights.
+   * Resolves true when Home Assistant says it's done, false when it refuses or doesn't answer.
+   */
+  call({ domain, service, entityId, data }) {
+    const ws = this.ws;
+    if (!this.signedIn || ws?.readyState !== WebSocket.OPEN) return Promise.resolve(false);
+    const id = this.nextId++;
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => finish(false), 5000);
+      const finish = (ok) => {
+        clearTimeout(timer);
+        this.waiting.delete(id);
+        resolve(ok);
+      };
+      this.waiting.set(id, finish);
+      ws.send(JSON.stringify({ id, type: "call_service", domain, service, target: { entity_id: entityId }, service_data: data }));
+    });
   }
 
   stop() {
