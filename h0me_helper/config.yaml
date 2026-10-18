@@ -18,13 +18,13 @@ options:
   ha_token: ""
   entities:
     - light.main_lights
-    - light.0x008c73daff8651e6
-    - light.0x008c73daff86d6c7
-    - light.0x00f044d3ff731009
+    - light.window_bulb
+    - light.door_bulb
+    - light.bed_bulb
     - light.mood_lights
     - light.desk_light
     - light.cabinet_light
-    - switch.0x3ccfb4689471ac2d
+    - switch.shelf_lights_outlet
     - switch.donut_light_outlet
     - input_select.my_room_scene
     - script.my_room_set_scene
