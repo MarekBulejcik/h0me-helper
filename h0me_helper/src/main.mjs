@@ -24,18 +24,19 @@ if (!options) {
   // at most 30 actions a minute, whatever H0me asks
   let recent = [];
   const onCall = async (call) => {
-    const answer = (ok) => h0me.send({ type: "result", id: call.id, ok });
+    // "not_allowed" tells H0me the helper's own list said no (so the page can say so)
+    const answer = (ok, reason) => h0me.send({ type: "result", id: call.id, ok, ...(reason ? { reason } : {}) });
     const t = Date.now();
     recent = recent.filter((at) => t - at < 60_000);
     if (recent.length >= 30) {
       warn("Refused an action from H0me: too many in a minute");
-      return answer(false);
+      return answer(false, "too_many");
     }
     recent.push(t);
     const checked = checkCall(call, options.entities);
     if (checked.refused) {
       warn(`Refused an action from H0me: ${checked.refused}`);
-      return answer(false);
+      return answer(false, "not_allowed");
     }
     const ok = await ha.call(checked);
     const details = Object.keys(checked.data).length ? ` ${JSON.stringify(checked.data)}` : "";

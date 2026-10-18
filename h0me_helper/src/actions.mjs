@@ -1,18 +1,21 @@
 // The helper's own list of safe actions. H0me checks its list first; this is the second check,
 // on the Pi, so even someone in control of H0me's server could do nothing else.
 // An action passes only if its device is in the "Devices" setting AND the action is in this table
-// AND every detail it carries is listed here with a number in range.
+// AND every detail it carries is listed here and in range.
 
-/** domain → action → the details it may carry, each with [lowest, highest]. */
+const int = (min, max) => (v) => Number.isInteger(v) && v >= min && v <= max;
+const num = (min, max) => (v) => typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
+const oneOf = (...values) => (v) => typeof v === "string" && values.includes(v);
+
+/** domain → action → the details it may carry, each with its check. */
 const SAFE = {
-  light: {
-    turn_on: { brightness_pct: [1, 100] },
-    turn_off: {},
-  },
-  switch: {
-    turn_on: {},
-    turn_off: {},
-  },
+  light: { turn_on: { brightness_pct: int(1, 100) }, turn_off: {} },
+  switch: { turn_on: {}, turn_off: {} },
+  humidifier: { turn_on: {}, turn_off: {} },
+  scene: { turn_on: {} },
+  climate: { turn_on: {}, turn_off: {}, set_temperature: { temperature: num(16, 30) } },
+  // scripts only get a scene name (the room's "Set Scene" script)
+  script: { turn_on: { scene_name: oneOf("Off", "Normal", "Mood", "Sleep", "Night Path") } },
 };
 
 /**
@@ -29,10 +32,11 @@ export function checkCall(call, entities) {
   const data = {};
   const given = call.data && typeof call.data === "object" ? call.data : {};
   for (const [key, value] of Object.entries(given)) {
-    const range = Object.hasOwn(allowedData, key) ? allowedData[key] : null;
-    if (!range) return { refused: `detail ${key} not allowed` };
-    if (!Number.isInteger(value) || value < range[0] || value > range[1]) return { refused: `${key} out of range` };
+    const check = Object.hasOwn(allowedData, key) ? allowedData[key] : null;
+    if (!check) return { refused: `detail ${key} not allowed` };
+    if (!check(value)) return { refused: `${key} not allowed: ${JSON.stringify(value).slice(0, 30)}` };
     data[key] = value;
   }
-  return { domain, service: call.action, entityId, data };
+  // a script's details are its variables
+  return { domain, service: call.action, entityId, data: domain === "script" ? { variables: data } : data };
 }

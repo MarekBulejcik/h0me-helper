@@ -9,8 +9,9 @@ connect in: no tunnel, no open ports, no domain.
 - Keeps one encrypted connection to H0me open, showing the shared secret. H0me notices at once
   when it's gone ("Home offline since …").
 - Does the actions H0me asks for, **only** if they're on this helper's own list: the device must
-  be in **Devices**, and the action one of the safe ones (lights: on, off, brightness; switches:
-  on, off). At most 30 a minute. Everything else is refused and shows in the Log tab.
+  be in **Devices**, and the action one of the safe ones (lights: on, off, brightness; outlets and
+  humidifier: on, off; scenes: on; AC: on, off, 16–30 °C; the room’s Set Scene script: only its five
+  scene names). At most 30 a minute. Everything else is refused and shows in the Log tab.
 
 ## Settings (Configuration tab)
 | Setting | What to put in |
