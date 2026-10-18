@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.0
+- Any light colour: a hue (0–360) and saturation (0–100), both checked here too.
+
 ## 0.4.0
 - Light colours: one of H0me's offered colour names (red, orange, yellow, lime, cyan, blue,
   purple, deeppink) or a white between 2000 and 6500 K. Nothing else.

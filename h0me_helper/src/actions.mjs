@@ -6,14 +6,17 @@
 const int = (min, max) => (v) => Number.isInteger(v) && v >= min && v <= max;
 const num = (min, max) => (v) => typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
 const oneOf = (...values) => (v) => typeof v === "string" && values.includes(v);
+// two numbers, each in its range (a colour's hue 0–360 and saturation 0–100)
+const pair = (a, b) => (v) => Array.isArray(v) && v.length === 2 && num(...a)(v[0]) && num(...b)(v[1]);
 
 /** domain → action → the details it may carry, each with its check. */
 const SAFE = {
-  // brightness, and one of H0me's offered colours: a colour name, or a white's warmth in kelvin
+  // brightness, and a colour: one of H0me's quick colour names, any hue and saturation, or a white's warmth in kelvin
   light: {
     turn_on: {
       brightness_pct: int(1, 100),
       color_name: oneOf("red", "orange", "yellow", "lime", "cyan", "blue", "purple", "deeppink"),
+      hs_color: pair([0, 360], [0, 100]),
       color_temp_kelvin: int(2000, 6500),
     },
     turn_off: {},
